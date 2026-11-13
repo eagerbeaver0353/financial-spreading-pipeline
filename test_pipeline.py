@@ -493,3 +493,325 @@ class TestAuditEdgeCases:
 
         contrib_sum = sum(e["account_contribution"] for e in prov[0].chain)
         assert abs(contrib_sum - prov[0].final_value) < 0.01
+
+
+# ---------------------------------------------------------------------------
+# Additional candidate tests (behavior-locked; do not change implementation)
+# ---------------------------------------------------------------------------
+
+_BBOX = {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}
+
+
+def _src(
+    item_id: str,
+    label: str,
+    value: float,
+    *,
+    confidence: float = 0.9,
+    source: str = "llm",
+    section_hint: str = "",
+    page: int = 1,
+) -> SourceLineItem:
+    return SourceLineItem(
+        id=item_id,
+        label=label,
+        value=value,
+        confidence=confidence,
+        page=page,
+        bounding_box=dict(_BBOX),
+        source=source,
+        section_hint=section_hint,
+    )
+
+
+class TestLowConfidenceAndFlags:
+    """Single-source flagging: low confidence and known-risk keys."""
+
+    def test_low_confidence_single_source_is_flagged(self, merged):
+        """Confidence < 0.60 on a single-source item triggers flagged=True."""
+        bad_debt = [m for m in merged if "bad debt" in m.label.lower()]
+        assert len(bad_debt) == 1
+        item = bad_debt[0]
+        assert item.conflict_type == "single_source"
+        assert item.confidence < 0.60
+        assert item.flagged is True
+
+    def test_known_risk_key_flagged_even_when_confidence_above_threshold(self, merged):
+        """EPS is flagged via known-risk key even though confidence is 0.62 (>= 0.60)."""
+        eps = [m for m in merged if "earnings per share" in m.label.lower()]
+        assert len(eps) == 1
+        assert eps[0].conflict_type == "single_source"
+        assert eps[0].confidence >= 0.60
+        assert eps[0].flagged is True
+
+    def test_high_confidence_ordinary_single_source_not_flagged(self, merged):
+        """Ordinary OCR-only Office Supplies stays unflagged at high confidence."""
+        office = [m for m in merged if "office" in m.label.lower()]
+        assert len(office) == 1
+        assert office[0].conflict_type == "single_source"
+        assert office[0].confidence >= 0.60
+        assert office[0].flagged is False
+
+
+class TestDefaultConflictResolution:
+    """Fallback when no statement-identity rule applies: higher confidence wins."""
+
+    def test_default_conflict_prefers_higher_confidence(self):
+        """Unspecialized concept: OCR 0.90 beats LLM 0.70; both sources retained."""
+        merged = reconcile(
+            [_src("a1", "Insurance", 100_000.0, confidence=0.70, source="llm")],
+            [_src("b1", "Insurance", 105_000.0, confidence=0.90, source="ocr")],
+        )
+        assert len(merged) == 1
+        item = merged[0]
+        assert item.has_conflict is True
+        assert item.conflict_type == "value_mismatch"
+        assert abs(item.value - 105_000.0) < 0.01
+        assert len(item.sources) == 2
+        assert "higher confidence" in item.resolution_note.lower()
+
+    def test_default_conflict_ocr_wins_on_confidence_tie(self):
+        """When confidences are equal, current policy selects OCR (>= comparison)."""
+        merged = reconcile(
+            [_src("a1", "Insurance", 100_000.0, confidence=0.85, source="llm")],
+            [_src("b1", "Insurance", 110_000.0, confidence=0.85, source="ocr")],
+        )
+        assert len(merged) == 1
+        assert abs(merged[0].value - 110_000.0) < 0.01
+        assert "Selected OCR" in merged[0].resolution_note
+
+
+class TestMatchingBoundaries:
+    """Pairing requires label similarity >= 0.45 or an alias; value alone is insufficient."""
+
+    def test_value_proximity_alone_does_not_match_dissimilar_labels(self):
+        """Jaccard 0.4 (< 0.45) with identical values → two single-source items."""
+        merged = reconcile(
+            [_src("a1", "Alpha Beta Gamma", 1_000.0, source="llm")],
+            [_src("b1", "Alpha Beta Delta Epsilon", 1_000.0, source="ocr")],
+        )
+        assert len(merged) == 2
+        assert all(m.conflict_type == "single_source" for m in merged)
+        assert all(len(m.sources) == 1 for m in merged)
+
+    def test_token_jaccard_at_half_matches_across_sources(self):
+        """Jaccard 0.5 (>= 0.45) with same value → one label_only matched item."""
+        merged = reconcile(
+            [_src("a1", "Alpha Beta Gamma", 1_000.0, source="llm")],
+            [_src("b1", "Alpha Beta Delta", 1_000.0, source="ocr")],
+        )
+        assert len(merged) == 1
+        item = merged[0]
+        assert len(item.sources) == 2
+        assert item.conflict_type == "label_only"
+        assert item.has_conflict is True
+        assert abs(item.value - 1_000.0) < 0.01
+
+
+class TestUnmappedAndAmbiguousAccounts:
+    """Explicit skip paths and section-disambiguated payroll."""
+
+    def test_returns_and_net_other_are_unmapped(self, merged, mappings):
+        """Returns & Allowances and Net Other Income (Expense) are intentionally skipped."""
+        unmapped_labels = {
+            m.label
+            for m in merged
+            if not any(m in acct.mapped_items for acct in mappings)
+        }
+        assert any("returns" in l.lower() for l in unmapped_labels)
+        assert any("net other income" in l.lower() for l in unmapped_labels)
+        for acct in mappings:
+            for item in acct.mapped_items:
+                assert "earnings per share" not in item.label.lower()
+                assert "returns & allowances" not in item.label.lower()
+                assert item.label.lower() != "net other income (expense)"
+
+    def test_ambiguous_payroll_in_operating_section_maps_to_sga(self):
+        """Payroll with Operating Expenses section hint → SGA, not COGS_LABOR."""
+        taxonomy = [
+            {
+                "id": "COGS_LABOR",
+                "name": "Direct Labor",
+                "type": "leaf",
+                "category": "Cost of Goods Sold",
+                "keywords": ["labor", "payroll", "wages"],
+            },
+            {
+                "id": "SGA",
+                "name": "SG&A",
+                "type": "leaf",
+                "category": "Operating Expenses",
+                "keywords": ["salaries", "wages", "sga"],
+            },
+        ]
+        item = MergedLineItem(
+            label="Payroll - Admin",
+            value=50_000.0,
+            confidence=0.9,
+            sources=[
+                _src(
+                    "a1",
+                    "Payroll - Admin",
+                    50_000.0,
+                    section_hint="Operating Expenses",
+                )
+            ],
+            conflict_type="single_source",
+        )
+        result = map_to_accounts([item], taxonomy)
+        assert len(result) == 1
+        assert result[0].account_id == "SGA"
+        assert abs(result[0].value - 50_000.0) < 0.01
+
+
+class TestTotalAndAccumulation:
+    """Total-line authority and multi-item leaf accumulation."""
+
+    def test_total_account_keeps_first_line_skips_duplicate_total(self):
+        """Second extracted total for the same total account is skipped."""
+        taxonomy = [
+            {
+                "id": "TOTAL_COGS",
+                "name": "Total COGS",
+                "type": "total",
+                "category": "Cost of Goods Sold",
+                "keywords": ["total cost of goods sold"],
+            }
+        ]
+        first = MergedLineItem(
+            label="Total Cost of Goods Sold",
+            value=8_840_000.0,
+            confidence=0.99,
+            sources=[_src("a1", "Total Cost of Goods Sold", 8_840_000.0)],
+        )
+        second = MergedLineItem(
+            label="Total Cost of Goods Sold",
+            value=9_000_000.0,
+            confidence=0.50,
+            sources=[_src("b1", "Total Cost of Goods Sold", 9_000_000.0, source="ocr")],
+        )
+        result = map_to_accounts([first, second], taxonomy)
+        assert len(result) == 1
+        assert abs(result[0].value - 8_840_000.0) < 0.01
+        assert len(result[0].mapped_items) == 1
+
+    def test_cogs_other_accumulates_freight_and_packaging(self, mappings):
+        """COGS_OTHER sums Freight + Packaging (multiple leaf contributors)."""
+        other = [m for m in mappings if m.account_id == "COGS_OTHER"]
+        assert len(other) == 1
+        assert len(other[0].mapped_items) == 2
+        labels = {i.label.lower() for i in other[0].mapped_items}
+        assert any("freight" in l for l in labels)
+        assert any("packaging" in l for l in labels)
+        assert abs(other[0].value - 590_000.0) < 1
+
+    def test_other_net_accumulates_multiple_non_operating_items(self, mappings):
+        """OTHER_NET holds Other Income, Warranty, FX loss, and Gain on Asset Sale."""
+        other = [m for m in mappings if m.account_id == "OTHER_NET"]
+        assert len(other) == 1
+        assert len(other[0].mapped_items) >= 4
+        assert abs(other[0].value - 120_000.0) < 1
+
+
+class TestValidateToleranceAndMissing:
+    """Tolerance boundary (inclusive) and missing-account-as-zero policy."""
+
+    def test_validate_passes_exactly_at_tolerance_with_zero_stored_gap(self):
+        """|actual - expected| == tolerance → passed; stored gap is 0.0."""
+        rules = [
+            {
+                "id": "T_AT",
+                "name": "at tolerance",
+                "add": ["A"],
+                "subtract": [],
+                "equals": "B",
+                "tolerance": 100.0,
+            }
+        ]
+        mappings = [
+            AccountMapping("A", "A", 200.0, []),
+            AccountMapping("B", "B", 100.0, []),
+        ]
+        results = validate(mappings, rules)
+        assert len(results) == 1
+        assert results[0].passed is True
+        assert results[0].gap == 0.0
+        assert abs(results[0].actual - results[0].expected) == 100.0
+
+    def test_validate_fails_just_beyond_tolerance(self):
+        """|actual - expected| == tolerance + 1 → failed; gap = actual - expected."""
+        rules = [
+            {
+                "id": "T_OVER",
+                "name": "over tolerance",
+                "add": ["A"],
+                "subtract": [],
+                "equals": "B",
+                "tolerance": 100.0,
+            }
+        ]
+        mappings = [
+            AccountMapping("A", "A", 201.0, []),
+            AccountMapping("B", "B", 100.0, []),
+        ]
+        results = validate(mappings, rules)
+        assert len(results) == 1
+        assert results[0].passed is False
+        assert abs(results[0].gap - 101.0) < 0.01
+        assert abs(results[0].gap - (results[0].actual - results[0].expected)) < 0.01
+
+    def test_validate_missing_account_treated_as_zero(self):
+        """Absent account IDs contribute 0.0 to add/subtract/equals."""
+        rules = [
+            {
+                "id": "T_MISS",
+                "name": "missing equals",
+                "add": ["A"],
+                "subtract": [],
+                "equals": "B",
+                "tolerance": 100.0,
+            }
+        ]
+        # B is missing → expected 0; |50 - 0| <= 100 → pass
+        results = validate([AccountMapping("A", "A", 50.0, [])], rules)
+        assert results[0].expected == 0.0
+        assert results[0].actual == 50.0
+        assert results[0].passed is True
+        assert results[0].gap == 0.0
+
+
+class TestAuditNonFxProvenance:
+    """Provenance for label-only / ordinary mappings (no FX sign flip)."""
+
+    def test_label_only_provenance_contribution_equals_merged_value(self, provenance):
+        """License/Licensing label_only: contribution == merged value; both source IDs."""
+        rev_other = [p for p in provenance if p.account_id == "REV_OTHER"]
+        assert len(rev_other) == 1
+        entries = [
+            e for e in rev_other[0].chain if e.get("conflict_type") == "label_only"
+        ]
+        assert len(entries) == 1
+        entry = entries[0]
+        assert abs(entry["account_contribution"] - entry["merged_value"]) < 0.01
+        assert abs(entry["merged_value"] - 890_000.0) < 0.01
+        assert "label mismatch" in entry["merge_decision"].lower()
+        ids = {sv["id"] for sv in entry["source_values"]}
+        assert "a_03" in ids and "b_03" in ids
+        # Non-FX path: mapping_decision must not claim negation
+        assert "negat" not in entry["mapping_decision"].lower()
+
+    def test_single_source_unflagged_item_still_in_provenance(self, provenance):
+        """High-confidence OCR-only Office Supplies remains traceable in SGA chain."""
+        sga = [p for p in provenance if p.account_id == "SGA"]
+        assert len(sga) == 1
+        office = [
+            e for e in sga[0].chain if "office" in e["merged_label"].lower()
+        ]
+        assert len(office) == 1
+        entry = office[0]
+        assert entry.get("flagged") is False
+        assert entry.get("conflict_type") == "single_source"
+        assert len(entry["source_values"]) == 1
+        assert entry["source_values"][0]["id"] == "b_18"
+        assert "page" in entry["source_values"][0]
+        assert "bounding_box" in entry["source_values"][0]
