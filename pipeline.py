@@ -206,7 +206,8 @@ _LABEL_ALIASES: Mapping[str, str] = MappingProxyType(
         "income before taxes": "pretax",
         "pre tax income": "pretax",
         "pretax income": "pretax",
-        "provision for income taxes": "tax",
+        # Key is post-_normalize_label (stopwords like "for" stripped).
+        "provision income taxes": "tax",
         "income tax expense": "tax",
         "net income": "net_income",
         "earnings per share": "eps",

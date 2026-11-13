@@ -524,6 +524,41 @@ def _src(
     )
 
 
+class TestTaxLabelReconciliation:
+    """Regression: Provision for Income Taxes ↔ Income Tax Expense as one TAX concept."""
+
+    def test_tax_lines_merge_a36_and_b28_once(self, merged):
+        tax_items = [
+            m for m in merged
+            if {s.id for s in m.sources} & {"a_36", "b_28"}
+            or any(
+                k in m.label.lower()
+                for k in ("income tax", "provision for income", "provision income")
+            )
+        ]
+        assert len(tax_items) == 1
+        item = tax_items[0]
+        source_ids = [s.id for s in item.sources]
+        assert sorted(source_ids) == ["a_36", "b_28"]
+        assert source_ids.count("a_36") == 1
+        assert source_ids.count("b_28") == 1
+        assert abs(item.value - 159_500.0) < 0.01
+
+    def test_tax_account_is_single_159500(self, mappings):
+        tax = [m for m in mappings if m.account_id == "TAX"]
+        assert len(tax) == 1
+        assert abs(tax[0].value - 159_500.0) < 0.01
+        assert len(tax[0].mapped_items) == 1
+        ids = [s.id for s in tax[0].mapped_items[0].sources]
+        assert sorted(ids) == ["a_36", "b_28"]
+
+    def test_r7_passes_with_zero_gap(self, validation_results):
+        r7 = [r for r in validation_results if r.rule_id == "R7"]
+        assert len(r7) == 1
+        assert r7[0].passed is True
+        assert r7[0].gap == 0.0
+
+
 class TestLowConfidenceAndFlags:
     """Single-source flagging: low confidence and known-risk keys."""
 
