@@ -1,0 +1,68 @@
+{
+  "description": "Validation rules for the Apex Manufacturing FY2024 income statement spreading. Each rule defines a mathematical relationship between accounts. 'add' accounts are summed, 'subtract' accounts are subtracted, and the result must equal the 'equals' account within 'tolerance' dollars.",
+  "rules": [
+    {
+      "id": "R1",
+      "name": "Revenue Components Sum",
+      "description": "Product, Service, and Other Revenue must sum to Total Revenue.",
+      "add": ["REV_PRODUCT", "REV_SERVICE", "REV_OTHER"],
+      "subtract": [],
+      "equals": "TOTAL_REVENUE",
+      "tolerance": 100.00
+    },
+    {
+      "id": "R2",
+      "name": "COGS Components Sum",
+      "description": "Raw Materials, Direct Labor, Manufacturing Overhead, and Other Direct Costs must sum to Total COGS.",
+      "add": ["COGS_MATERIALS", "COGS_LABOR", "COGS_OVERHEAD", "COGS_OTHER"],
+      "subtract": [],
+      "equals": "TOTAL_COGS",
+      "tolerance": 100.00
+    },
+    {
+      "id": "R3",
+      "name": "Gross Profit Calculation",
+      "description": "Total Revenue minus Total COGS must equal Gross Profit.",
+      "add": ["TOTAL_REVENUE"],
+      "subtract": ["TOTAL_COGS"],
+      "equals": "GROSS_PROFIT",
+      "tolerance": 100.00
+    },
+    {
+      "id": "R4",
+      "name": "Operating Expenses Sum",
+      "description": "SGA, R&D, and D&A must sum to Total Operating Expenses.",
+      "add": ["SGA", "RND", "DEPR_AMORT"],
+      "subtract": [],
+      "equals": "TOTAL_OPEX",
+      "tolerance": 100.00
+    },
+    {
+      "id": "R5",
+      "name": "Operating Income Calculation",
+      "description": "Gross Profit minus Total Operating Expenses must equal Operating Income.",
+      "add": ["GROSS_PROFIT"],
+      "subtract": ["TOTAL_OPEX"],
+      "equals": "OPERATING_INCOME",
+      "tolerance": 100.00
+    },
+    {
+      "id": "R6",
+      "name": "Pre-Tax Income Calculation",
+      "description": "Operating Income plus Interest Income plus Other Non-Operating minus Interest Expense must equal Pre-Tax Income.",
+      "add": ["OPERATING_INCOME", "INT_INCOME", "OTHER_NET"],
+      "subtract": ["INT_EXPENSE"],
+      "equals": "PRETAX_INCOME",
+      "tolerance": 100.00
+    },
+    {
+      "id": "R7",
+      "name": "Net Income Calculation",
+      "description": "Pre-Tax Income minus Income Tax Expense must equal Net Income.",
+      "add": ["PRETAX_INCOME"],
+      "subtract": ["TAX"],
+      "equals": "NET_INCOME",
+      "tolerance": 100.00
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "name": "Standard Income Statement — Manufacturing",
+  "version": "1.0",
+  "description": "Target account taxonomy for spreading a manufacturing company income statement. Leaf accounts receive mapped line items. Total accounts aggregate children and are checked by validation rules.",
+  "accounts": [
+    {
+      "id": "REV_PRODUCT",
+      "name": "Product Revenue",
+      "type": "leaf",
+      "category": "Revenue",
+      "description": "Revenue from the sale of manufactured goods and products.",
+      "keywords": ["product sales", "merchandise", "goods sold"]
+    },
+    {
+      "id": "REV_SERVICE",
+      "name": "Service Revenue",
+      "type": "leaf",
+      "category": "Revenue",
+      "description": "Revenue from services rendered to customers.",
+      "keywords": ["service revenue", "consulting revenue", "fees earned"]
+    },
+    {
+      "id": "REV_OTHER",
+      "name": "Other Revenue",
+      "type": "leaf",
+      "category": "Revenue",
+      "description": "Licensing fees, royalties, and miscellaneous operating revenue.",
+      "keywords": ["licensing", "royalties", "license revenue", "other revenue"]
+    },
+    {
+      "id": "TOTAL_REVENUE",
+      "name": "Total Revenue",
+      "type": "total",
+      "category": "Revenue",
+      "description": "Sum of all revenue streams.",
+      "children": ["REV_PRODUCT", "REV_SERVICE", "REV_OTHER"],
+      "keywords": ["total revenue", "net revenue", "total sales"]
+    },
+    {
+      "id": "COGS_MATERIALS",
+      "name": "Raw Materials",
+      "type": "leaf",
+      "category": "Cost of Goods Sold",
+      "description": "Cost of raw materials and supplies consumed in production.",
+      "keywords": ["raw materials", "materials cost", "supplies"]
+    },
+    {
+      "id": "COGS_LABOR",
+      "name": "Direct Labor",
+      "type": "leaf",
+      "category": "Cost of Goods Sold",
+      "description": "Wages paid directly to production workers. Includes production payroll.",
+      "keywords": ["direct labor", "production labor", "production payroll", "production wages"]
+    },
+    {
+      "id": "COGS_OVERHEAD",
+      "name": "Manufacturing Overhead",
+      "type": "leaf",
+      "category": "Cost of Goods Sold",
+      "description": "Indirect production costs: factory rent, equipment maintenance, production supervision.",
+      "keywords": ["manufacturing overhead", "factory overhead", "production overhead"]
+    },
+    {
+      "id": "COGS_OTHER",
+      "name": "Other Direct Costs",
+      "type": "leaf",
+      "category": "Cost of Goods Sold",
+      "description": "Freight, shipping, packaging, and other costs directly tied to goods sold.",
+      "keywords": ["freight", "shipping", "packaging", "delivery costs"]
+    },
+    {
+      "id": "TOTAL_COGS",
+      "name": "Total Cost of Goods Sold",
+      "type": "total",
+      "category": "Cost of Goods Sold",
+      "description": "Sum of all direct costs of producing goods sold.",
+      "children": ["COGS_MATERIALS", "COGS_LABOR", "COGS_OVERHEAD", "COGS_OTHER"],
+      "keywords": ["total cogs", "cost of goods sold", "total cost of sales", "cost of revenue"]
+    },
+    {
+      "id": "GROSS_PROFIT",
+      "name": "Gross Profit",
+      "type": "total",
+      "category": "Profitability",
+      "description": "Revenue minus cost of goods sold.",
+      "keywords": ["gross profit", "gross margin", "gross income"]
+    },
+    {
+      "id": "SGA",
+      "name": "Selling, General & Administrative",
+      "type": "leaf",
+      "category": "Operating Expenses",
+      "description": "Non-production operating expenses: salaries (non-production), benefits, rent, marketing, professional fees, insurance, utilities, office supplies, travel, bad debt.",
+      "keywords": ["salaries", "wages", "benefits", "rent", "marketing", "advertising", "professional fees", "legal", "consulting", "insurance", "utilities", "office", "travel", "entertainment", "bad debt", "employee benefits", "occupancy"]
+    },
+    {
+      "id": "RND",
+      "name": "Research & Development",
+      "type": "leaf",
+      "category": "Operating Expenses",
+      "description": "Expenditures on research and new product development.",
+      "keywords": ["research", "development", "r&d", "R&D"]
+    },
+    {
+      "id": "DEPR_AMORT",
+      "name": "Depreciation & Amortization",
+      "type": "leaf",
+      "category": "Operating Expenses",
+      "description": "Non-cash charges for depreciation of tangible assets and amortization of intangibles.",
+      "keywords": ["depreciation", "amortization", "D&A", "dep & amort"]
+    },
+    {
+      "id": "TOTAL_OPEX",
+      "name": "Total Operating Expenses",
+      "type": "total",
+      "category": "Operating Expenses",
+      "description": "Sum of SGA, R&D, and D&A.",
+      "children": ["SGA", "RND", "DEPR_AMORT"],
+      "keywords": ["total operating expenses", "total opex", "operating costs"]
+    },
+    {
+      "id": "OPERATING_INCOME",
+      "name": "Operating Income",
+      "type": "total",
+      "category": "Profitability",
+      "description": "Gross profit minus total operating expenses.",
+      "keywords": ["operating income", "operating profit", "EBIT", "income from operations"]
+    },
+    {
+      "id": "INT_EXPENSE",
+      "name": "Interest Expense",
+      "type": "leaf",
+      "category": "Non-Operating",
+      "description": "Cost of borrowed funds.",
+      "keywords": ["interest expense", "finance costs", "borrowing costs"]
+    },
+    {
+      "id": "INT_INCOME",
+      "name": "Interest Income",
+      "type": "leaf",
+      "category": "Non-Operating",
+      "description": "Income earned from interest-bearing instruments.",
+      "keywords": ["interest income", "investment income"]
+    },
+    {
+      "id": "OTHER_NET",
+      "name": "Other Non-Operating Income/Expense",
+      "type": "leaf",
+      "category": "Non-Operating",
+      "description": "Gains/losses on asset sales, FX, warranty adjustments, and other non-operating items.",
+      "keywords": ["other income", "other expense", "gain on sale", "foreign exchange", "non-operating"]
+    },
+    {
+      "id": "PRETAX_INCOME",
+      "name": "Pre-Tax Income",
+      "type": "total",
+      "category": "Bottom Line",
+      "description": "Income before provision for income taxes.",
+      "keywords": ["pre-tax income", "income before taxes", "EBT", "earnings before tax"]
+    },
+    {
+      "id": "TAX",
+      "name": "Income Tax Expense",
+      "type": "leaf",
+      "category": "Bottom Line",
+      "description": "Provision for federal, state, and local income taxes.",
+      "keywords": ["income tax", "tax expense", "provision for taxes", "tax provision"]
+    },
+    {
+      "id": "NET_INCOME",
+      "name": "Net Income",
+      "type": "total",
+      "category": "Bottom Line",
+      "description": "Bottom-line profit after all expenses and taxes.",
+      "keywords": ["net income", "net profit", "net earnings", "bottom line"]
+    },
+    {
+      "id": "EXTRAORDINARY",
+      "name": "Extraordinary Items",
+      "type": "leaf",
+      "category": "Non-Recurring",
+      "description": "Unusual, infrequent items not part of normal operations. Rarely used.",
+      "keywords": ["extraordinary", "non-recurring", "unusual"]
+    }
+  ]
+}

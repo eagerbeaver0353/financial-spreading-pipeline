@@ -1,0 +1,270 @@
+{
+  "source": "ocr",
+  "engine": "template_rule_v3",
+  "document": "apex_manufacturing_fy2024_income_statement.pdf",
+  "extracted_at": "2025-06-15T14:35:00Z",
+  "notes": "Template-based OCR with rule engine. Higher precision, misses items without clear formatting, occasional digit-level errors.",
+  "line_items": [
+    {
+      "id": "b_01",
+      "label": "Product Sales",
+      "value": 12456000.00,
+      "confidence": 0.99,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 148, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_02",
+      "label": "Service Revenue",
+      "value": 3280000.00,
+      "confidence": 0.99,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 168, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_03",
+      "label": "Licensing Fees",
+      "value": 890000.00,
+      "confidence": 0.98,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 188, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_04",
+      "label": "Total Revenue",
+      "value": 16620000.00,
+      "confidence": 0.99,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 224, "width": 468, "height": 20},
+      "method": "bold_line_detector"
+    },
+    {
+      "id": "b_05",
+      "label": "Raw Materials",
+      "value": 4120000.00,
+      "confidence": 0.99,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 264, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_06",
+      "label": "Direct Labor",
+      "value": 2890000.00,
+      "confidence": 0.99,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 284, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_07",
+      "label": "Manufacturing Overhead",
+      "value": 1450000.00,
+      "confidence": 0.99,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 304, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_08",
+      "label": "Freight & Shipping",
+      "value": 380000.00,
+      "confidence": 0.98,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 324, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_09",
+      "label": "Total Cost of Goods Sold",
+      "value": 8840000.00,
+      "confidence": 0.99,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 362, "width": 468, "height": 20},
+      "method": "bold_line_detector"
+    },
+    {
+      "id": "b_10",
+      "label": "Gross Profit",
+      "value": 7780000.00,
+      "confidence": 0.99,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 394, "width": 468, "height": 20},
+      "method": "bold_line_detector"
+    },
+    {
+      "id": "b_11",
+      "label": "Salaries & Wages",
+      "value": 2150000.00,
+      "confidence": 0.99,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 108, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_12",
+      "label": "Employee Benefits",
+      "value": 645000.00,
+      "confidence": 0.98,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 128, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_13",
+      "label": "Rent & Occupancy",
+      "value": 480000.00,
+      "confidence": 0.99,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 148, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_14",
+      "label": "Marketing & Advertising",
+      "value": 720000.00,
+      "confidence": 0.99,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 168, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_15",
+      "label": "Professional Fees",
+      "value": 310000.00,
+      "confidence": 0.98,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 188, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_16",
+      "label": "Insurance",
+      "value": 185000.00,
+      "confidence": 0.99,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 208, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_17",
+      "label": "Utilities",
+      "value": 142000.00,
+      "confidence": 0.98,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 228, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_18",
+      "label": "Office Supplies",
+      "value": 68000.00,
+      "confidence": 0.97,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 248, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_19",
+      "label": "Research & Development",
+      "value": 1280000.00,
+      "confidence": 0.99,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 288, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_20",
+      "label": "Depreciation",
+      "value": 520000.00,
+      "confidence": 0.99,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 308, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_21",
+      "label": "Amortization",
+      "value": 180000.00,
+      "confidence": 0.98,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 328, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_22",
+      "label": "Total Operating Expenses",
+      "value": 6875000.00,
+      "confidence": 0.99,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 366, "width": 468, "height": 20},
+      "method": "bold_line_detector"
+    },
+    {
+      "id": "b_23",
+      "label": "Operating Income",
+      "value": 905000.00,
+      "confidence": 0.99,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 398, "width": 468, "height": 20},
+      "method": "bold_line_detector"
+    },
+    {
+      "id": "b_24",
+      "label": "Interest Expense",
+      "value": 340000.00,
+      "confidence": 0.99,
+      "page": 3,
+      "bounding_box": {"x": 72, "y": 108, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_25",
+      "label": "Interest Income",
+      "value": 45000.00,
+      "confidence": 0.98,
+      "page": 3,
+      "bounding_box": {"x": 72, "y": 128, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_26",
+      "label": "Gain on Asset Sale",
+      "value": 12000.00,
+      "confidence": 0.88,
+      "page": 3,
+      "bounding_box": {"x": 72, "y": 148, "width": 468, "height": 18},
+      "method": "footnote_extractor"
+    },
+    {
+      "id": "b_27",
+      "label": "Pre-Tax Income",
+      "value": 636000.00,
+      "confidence": 0.97,
+      "page": 3,
+      "bounding_box": {"x": 72, "y": 202, "width": 468, "height": 20},
+      "method": "bold_line_detector"
+    },
+    {
+      "id": "b_28",
+      "label": "Income Tax Expense",
+      "value": 159500.00,
+      "confidence": 0.99,
+      "page": 3,
+      "bounding_box": {"x": 72, "y": 228, "width": 468, "height": 18},
+      "method": "table_parser"
+    },
+    {
+      "id": "b_29",
+      "label": "Net Income",
+      "value": 478500.00,
+      "confidence": 0.99,
+      "page": 3,
+      "bounding_box": {"x": 72, "y": 260, "width": 468, "height": 20},
+      "method": "bold_line_detector"
+    }
+  ]
+}

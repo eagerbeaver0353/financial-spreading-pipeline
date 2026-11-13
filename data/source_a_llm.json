@@ -1,0 +1,351 @@
+{
+  "source": "llm",
+  "model": "gpt-4o-2025-04-09",
+  "document": "apex_manufacturing_fy2024_income_statement.pdf",
+  "extracted_at": "2025-06-15T14:32:00Z",
+  "notes": "LLM extraction with vision. Higher recall but occasionally hallucinates, splits items, or uses non-standard labels.",
+  "line_items": [
+    {
+      "id": "a_01",
+      "label": "Product Sales",
+      "value": 12450000.00,
+      "confidence": 0.97,
+      "page": 1,
+      "bounding_box": {"x": 90, "y": 152, "width": 420, "height": 16},
+      "section_hint": "Revenue"
+    },
+    {
+      "id": "a_02",
+      "label": "Service Revenue",
+      "value": 3280000.00,
+      "confidence": 0.95,
+      "page": 1,
+      "bounding_box": {"x": 90, "y": 172, "width": 420, "height": 16},
+      "section_hint": "Revenue"
+    },
+    {
+      "id": "a_03",
+      "label": "License Revenue",
+      "value": 890000.00,
+      "confidence": 0.88,
+      "page": 1,
+      "bounding_box": {"x": 90, "y": 192, "width": 420, "height": 16},
+      "section_hint": "Revenue"
+    },
+    {
+      "id": "a_04",
+      "label": "Returns & Allowances",
+      "value": 0.00,
+      "confidence": 0.45,
+      "page": 1,
+      "bounding_box": {"x": 90, "y": 210, "width": 420, "height": 16},
+      "section_hint": "Revenue"
+    },
+    {
+      "id": "a_05",
+      "label": "Total Revenue",
+      "value": 16620000.00,
+      "confidence": 0.96,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 228, "width": 468, "height": 18},
+      "section_hint": "Revenue"
+    },
+    {
+      "id": "a_06",
+      "label": "Raw Materials",
+      "value": 4120000.00,
+      "confidence": 0.94,
+      "page": 1,
+      "bounding_box": {"x": 90, "y": 268, "width": 420, "height": 16},
+      "section_hint": "Cost of Goods Sold"
+    },
+    {
+      "id": "a_07",
+      "label": "Payroll - Production",
+      "value": 2890000.00,
+      "confidence": 0.82,
+      "page": 1,
+      "bounding_box": {"x": 90, "y": 288, "width": 420, "height": 16},
+      "section_hint": "Cost of Goods Sold"
+    },
+    {
+      "id": "a_08",
+      "label": "Manufacturing Overhead",
+      "value": 1450000.00,
+      "confidence": 0.91,
+      "page": 1,
+      "bounding_box": {"x": 90, "y": 308, "width": 420, "height": 16},
+      "section_hint": "Cost of Goods Sold"
+    },
+    {
+      "id": "a_09",
+      "label": "Freight & Shipping",
+      "value": 388000.00,
+      "confidence": 0.72,
+      "page": 1,
+      "bounding_box": {"x": 90, "y": 328, "width": 420, "height": 16},
+      "section_hint": "Cost of Goods Sold"
+    },
+    {
+      "id": "a_10",
+      "label": "Packaging Costs",
+      "value": 210000.00,
+      "confidence": 0.65,
+      "page": 1,
+      "bounding_box": {"x": 108, "y": 346, "width": 402, "height": 14},
+      "section_hint": "Cost of Goods Sold"
+    },
+    {
+      "id": "a_11",
+      "label": "Total Cost of Goods Sold",
+      "value": 8840000.00,
+      "confidence": 0.95,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 368, "width": 468, "height": 18},
+      "section_hint": "Cost of Goods Sold"
+    },
+    {
+      "id": "a_12",
+      "label": "Gross Profit",
+      "value": 7780000.00,
+      "confidence": 0.96,
+      "page": 1,
+      "bounding_box": {"x": 72, "y": 398, "width": 468, "height": 18},
+      "section_hint": "Summary"
+    },
+    {
+      "id": "a_13",
+      "label": "Salaries & Wages",
+      "value": 2150000.00,
+      "confidence": 0.94,
+      "page": 2,
+      "bounding_box": {"x": 90, "y": 112, "width": 420, "height": 16},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_14",
+      "label": "Sales Commissions",
+      "value": 380000.00,
+      "confidence": 0.71,
+      "page": 2,
+      "bounding_box": {"x": 108, "y": 130, "width": 402, "height": 14},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_15",
+      "label": "Health Insurance",
+      "value": 420000.00,
+      "confidence": 0.87,
+      "page": 2,
+      "bounding_box": {"x": 108, "y": 148, "width": 402, "height": 14},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_16",
+      "label": "Retirement Benefits",
+      "value": 225000.00,
+      "confidence": 0.85,
+      "page": 2,
+      "bounding_box": {"x": 108, "y": 164, "width": 402, "height": 14},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_17",
+      "label": "Rent & Facilities",
+      "value": 480000.00,
+      "confidence": 0.92,
+      "page": 2,
+      "bounding_box": {"x": 90, "y": 184, "width": 420, "height": 16},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_18",
+      "label": "Marketing & Advertising",
+      "value": 720000.00,
+      "confidence": 0.93,
+      "page": 2,
+      "bounding_box": {"x": 90, "y": 204, "width": 420, "height": 16},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_19",
+      "label": "Legal & Consulting",
+      "value": 310000.00,
+      "confidence": 0.79,
+      "page": 2,
+      "bounding_box": {"x": 90, "y": 224, "width": 420, "height": 16},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_20",
+      "label": "Insurance",
+      "value": 185000.00,
+      "confidence": 0.91,
+      "page": 2,
+      "bounding_box": {"x": 90, "y": 244, "width": 420, "height": 16},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_21",
+      "label": "Utilities",
+      "value": 142000.00,
+      "confidence": 0.90,
+      "page": 2,
+      "bounding_box": {"x": 90, "y": 264, "width": 420, "height": 16},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_22",
+      "label": "Travel & Entertainment",
+      "value": 195000.00,
+      "confidence": 0.86,
+      "page": 2,
+      "bounding_box": {"x": 90, "y": 284, "width": 420, "height": 16},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_23",
+      "label": "Bad Debt Expense",
+      "value": 42000.00,
+      "confidence": 0.54,
+      "page": 2,
+      "bounding_box": {"x": 108, "y": 300, "width": 402, "height": 14},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_24",
+      "label": "Research & Development",
+      "value": 1280000.00,
+      "confidence": 0.94,
+      "page": 2,
+      "bounding_box": {"x": 90, "y": 320, "width": 420, "height": 16},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_25",
+      "label": "Depreciation & Amortization",
+      "value": 700000.00,
+      "confidence": 0.89,
+      "page": 2,
+      "bounding_box": {"x": 90, "y": 340, "width": 420, "height": 16},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_26",
+      "label": "Stock Compensation Expense",
+      "value": 165000.00,
+      "confidence": 0.68,
+      "page": 2,
+      "bounding_box": {"x": 108, "y": 356, "width": 402, "height": 14},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_27",
+      "label": "Total Operating Expenses",
+      "value": 6875000.00,
+      "confidence": 0.95,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 380, "width": 468, "height": 18},
+      "section_hint": "Operating Expenses"
+    },
+    {
+      "id": "a_28",
+      "label": "Operating Income",
+      "value": 905000.00,
+      "confidence": 0.94,
+      "page": 2,
+      "bounding_box": {"x": 72, "y": 410, "width": 468, "height": 18},
+      "section_hint": "Summary"
+    },
+    {
+      "id": "a_29",
+      "label": "Interest Expense",
+      "value": 340000.00,
+      "confidence": 0.93,
+      "page": 3,
+      "bounding_box": {"x": 90, "y": 112, "width": 420, "height": 16},
+      "section_hint": "Other Income and Expense"
+    },
+    {
+      "id": "a_30",
+      "label": "Interest Income",
+      "value": 45000.00,
+      "confidence": 0.88,
+      "page": 3,
+      "bounding_box": {"x": 90, "y": 132, "width": 420, "height": 16},
+      "section_hint": "Other Income and Expense"
+    },
+    {
+      "id": "a_31",
+      "label": "Other Income",
+      "value": 28000.00,
+      "confidence": 0.76,
+      "page": 3,
+      "bounding_box": {"x": 90, "y": 152, "width": 420, "height": 16},
+      "section_hint": "Other Income and Expense"
+    },
+    {
+      "id": "a_32",
+      "label": "Warranty Reserve Adjustment",
+      "value": 95000.00,
+      "confidence": 0.58,
+      "page": 3,
+      "bounding_box": {"x": 108, "y": 170, "width": 402, "height": 14},
+      "section_hint": "Other Income and Expense"
+    },
+    {
+      "id": "a_33",
+      "label": "Foreign Exchange Loss",
+      "value": 15000.00,
+      "confidence": 0.51,
+      "page": 3,
+      "bounding_box": {"x": 108, "y": 186, "width": 402, "height": 14},
+      "section_hint": "Other Income and Expense"
+    },
+    {
+      "id": "a_34",
+      "label": "Net Other Income (Expense)",
+      "value": -267000.00,
+      "confidence": 0.85,
+      "page": 3,
+      "bounding_box": {"x": 72, "y": 208, "width": 468, "height": 18},
+      "section_hint": "Other Income and Expense"
+    },
+    {
+      "id": "a_35",
+      "label": "Income Before Taxes",
+      "value": 638000.00,
+      "confidence": 0.94,
+      "page": 3,
+      "bounding_box": {"x": 72, "y": 240, "width": 468, "height": 18},
+      "section_hint": "Bottom Line"
+    },
+    {
+      "id": "a_36",
+      "label": "Provision for Income Taxes",
+      "value": 159500.00,
+      "confidence": 0.92,
+      "page": 3,
+      "bounding_box": {"x": 90, "y": 264, "width": 420, "height": 16},
+      "section_hint": "Bottom Line"
+    },
+    {
+      "id": "a_37",
+      "label": "Net Income",
+      "value": 478500.00,
+      "confidence": 0.96,
+      "page": 3,
+      "bounding_box": {"x": 72, "y": 292, "width": 468, "height": 18},
+      "section_hint": "Bottom Line"
+    },
+    {
+      "id": "a_38",
+      "label": "Earnings Per Share",
+      "value": 2.39,
+      "confidence": 0.62,
+      "page": 3,
+      "bounding_box": {"x": 90, "y": 320, "width": 420, "height": 16},
+      "section_hint": "Bottom Line"
+    }
+  ]
+}
