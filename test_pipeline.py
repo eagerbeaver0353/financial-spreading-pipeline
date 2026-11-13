@@ -327,5 +327,99 @@ class TestAuditTrail:
 # ADD YOUR OWN TESTS BELOW THIS LINE
 # ---------------------------------------------------------------------------
 
-# class TestMyReconcileEdgeCases:
-#     ...
+
+class TestReconcileEdgeCases:
+    """Candidate-added reconciliation edge cases."""
+
+    def test_license_label_mismatch_matched(self, merged):
+        """License Revenue (A) and Licensing Fees (B) are the same concept."""
+        matches = [
+            m for m in merged
+            if "license" in m.label.lower() or "licensing" in m.label.lower()
+        ]
+        assert len(matches) == 1
+        item = matches[0]
+        assert len(item.sources) == 2
+        assert abs(item.value - 890000) < 1
+        assert item.conflict_type in ("label_only", None) or item.has_conflict is True
+
+    def test_product_sales_resolution_retains_both_sources(self, merged):
+        """Conflict resolution must keep both source values for auditability."""
+        product = [
+            m for m in merged
+            if "product" in m.label.lower() and ("sales" in m.label.lower() or "revenue" in m.label.lower())
+        ]
+        assert len(product) >= 1
+        item = product[0]
+        source_values = sorted(s.value for s in item.sources)
+        assert source_values == [12450000.0, 12456000.0]
+        assert item.resolution_note
+        assert str(int(item.value))[:5] in item.resolution_note.replace(",", "") or (
+            f"{item.value:,.0f}" in item.resolution_note or f"{item.value:,.2f}" in item.resolution_note
+        )
+
+    def test_da_not_double_counted(self, merged):
+        """Combined LLM D&A and OCR Depreciation+Amortization → one ~700k concept."""
+        da_items = [
+            m for m in merged
+            if any(k in m.label.lower() for k in ("depreciation", "amortization", "d&a"))
+        ]
+        total = sum(m.value for m in da_items)
+        assert abs(total - 700000) < 1000
+        assert len(da_items) == 1
+
+    def test_packaging_flagged_as_double_count_risk(self, merged):
+        packaging = [m for m in merged if "packaging" in m.label.lower()]
+        assert len(packaging) == 1
+        assert packaging[0].flagged is True
+        assert packaging[0].conflict_type == "single_source"
+
+
+class TestMappingEdgeCases:
+    """Candidate-added mapping edge cases."""
+
+    def test_payroll_production_maps_to_cogs_labor(self, mappings):
+        labor = [m for m in mappings if m.account_id == "COGS_LABOR"]
+        assert len(labor) == 1
+        assert abs(labor[0].value - 2890000) < 100
+        labels = " ".join(i.label.lower() for i in labor[0].mapped_items)
+        assert "labor" in labels or "payroll" in labels
+
+    def test_sga_excludes_interest_expense(self, mappings):
+        sga = [m for m in mappings if m.account_id == "SGA"]
+        assert len(sga) == 1
+        for item in sga[0].mapped_items:
+            assert "interest" not in item.label.lower()
+
+    def test_totals_not_inflated_by_leaf_children(self, mappings):
+        """TOTAL_COGS should reflect the extracted total (~8.84M), not sum of leaves."""
+        cogs = [m for m in mappings if m.account_id == "TOTAL_COGS"]
+        assert len(cogs) == 1
+        assert abs(cogs[0].value - 8840000) < 100
+
+
+class TestValidateEdgeCases:
+    def test_failed_rule_reports_nonzero_gap(self, validation_results):
+        """When a rule fails, gap must be actual - expected (not silently zeroed)."""
+        failures = [r for r in validation_results if not r.passed]
+        for r in failures:
+            assert abs(r.gap) > 100
+            assert abs((r.actual - r.expected) - r.gap) < 0.01
+
+    def test_gap_formula_consistency(self, validation_results):
+        for r in validation_results:
+            if r.passed:
+                assert abs(r.actual - r.expected) <= 100
+            else:
+                assert abs(r.gap - (r.actual - r.expected)) < 0.01
+
+
+class TestAuditEdgeCases:
+    def test_product_sales_provenance_lists_both_source_ids(self, provenance):
+        rev = [p for p in provenance if p.account_id == "REV_PRODUCT"]
+        assert len(rev) == 1
+        ids = set()
+        for entry in rev[0].chain:
+            for sv in entry["source_values"]:
+                ids.add(sv["id"])
+        assert "a_01" in ids and "b_01" in ids
