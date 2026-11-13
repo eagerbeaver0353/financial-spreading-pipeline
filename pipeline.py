@@ -13,7 +13,8 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from types import MappingProxyType
+from typing import Any, Mapping
 
 
 # ---------------------------------------------------------------------------
@@ -85,6 +86,8 @@ class ProvenanceRecord:
     #   "merged_label": str,
     #   "merged_value": float,
     #   "merge_decision": str,
+    #   "account_contribution": float,  # signed amount applied to the account
+    #   "mapping_decision": str,        # how merged_value became the contribution
     #   "source_values": [
     #       {"source": str, "id": str, "value": float,
     #        "page": int, "bounding_box": dict}
@@ -156,58 +159,60 @@ _STOPWORDS = frozenset(
 )
 
 # Synonym groups so label-only mismatches still match across sources.
-_LABEL_ALIASES: dict[str, str] = {
-    "product sales": "product_sales",
-    "service revenue": "service_revenue",
-    "license revenue": "license_revenue",
-    "licensing fees": "license_revenue",
-    "total revenue": "total_revenue",
-    "raw materials": "raw_materials",
-    "payroll production": "direct_labor",
-    "direct labor": "direct_labor",
-    "manufacturing overhead": "mfg_overhead",
-    "freight shipping": "freight",
-    "packaging costs": "packaging",
-    "total cost of goods sold": "total_cogs",
-    "gross profit": "gross_profit",
-    "salaries wages": "salaries",
-    "sales commissions": "commissions",
-    "health insurance": "health_insurance",
-    "retirement benefits": "retirement",
-    "employee benefits": "employee_benefits",
-    "rent facilities": "rent",
-    "rent occupancy": "rent",
-    "marketing advertising": "marketing",
-    "legal consulting": "professional_fees",
-    "professional fees": "professional_fees",
-    "insurance": "insurance",
-    "utilities": "utilities",
-    "travel entertainment": "travel",
-    "office supplies": "office_supplies",
-    "bad debt expense": "bad_debt",
-    "research development": "rnd",
-    "depreciation amortization": "da_combined",
-    "depreciation": "depreciation",
-    "amortization": "amortization",
-    "stock compensation expense": "stock_comp",
-    "total operating expenses": "total_opex",
-    "operating income": "operating_income",
-    "interest expense": "interest_expense",
-    "interest income": "interest_income",
-    "other income": "other_income",
-    "gain on asset sale": "gain_asset_sale",
-    "warranty reserve adjustment": "warranty",
-    "foreign exchange loss": "fx_loss",
-    "net other income expense": "net_other",
-    "income before taxes": "pretax",
-    "pre tax income": "pretax",
-    "pretax income": "pretax",
-    "provision for income taxes": "tax",
-    "income tax expense": "tax",
-    "net income": "net_income",
-    "earnings per share": "eps",
-    "returns allowances": "returns",
-}
+_LABEL_ALIASES: Mapping[str, str] = MappingProxyType(
+    {
+        "product sales": "product_sales",
+        "service revenue": "service_revenue",
+        "license revenue": "license_revenue",
+        "licensing fees": "license_revenue",
+        "total revenue": "total_revenue",
+        "raw materials": "raw_materials",
+        "payroll production": "direct_labor",
+        "direct labor": "direct_labor",
+        "manufacturing overhead": "mfg_overhead",
+        "freight shipping": "freight",
+        "packaging costs": "packaging",
+        "total cost of goods sold": "total_cogs",
+        "gross profit": "gross_profit",
+        "salaries wages": "salaries",
+        "sales commissions": "commissions",
+        "health insurance": "health_insurance",
+        "retirement benefits": "retirement",
+        "employee benefits": "employee_benefits",
+        "rent facilities": "rent",
+        "rent occupancy": "rent",
+        "marketing advertising": "marketing",
+        "legal consulting": "professional_fees",
+        "professional fees": "professional_fees",
+        "insurance": "insurance",
+        "utilities": "utilities",
+        "travel entertainment": "travel",
+        "office supplies": "office_supplies",
+        "bad debt expense": "bad_debt",
+        "research development": "rnd",
+        "depreciation amortization": "da_combined",
+        "depreciation": "depreciation",
+        "amortization": "amortization",
+        "stock compensation expense": "stock_comp",
+        "total operating expenses": "total_opex",
+        "operating income": "operating_income",
+        "interest expense": "interest_expense",
+        "interest income": "interest_income",
+        "other income": "other_income",
+        "gain on asset sale": "gain_asset_sale",
+        "warranty reserve adjustment": "warranty",
+        "foreign exchange loss": "fx_loss",
+        "net other income expense": "net_other",
+        "income before taxes": "pretax",
+        "pre tax income": "pretax",
+        "pretax income": "pretax",
+        "provision for income taxes": "tax",
+        "income tax expense": "tax",
+        "net income": "net_income",
+        "earnings per share": "eps",
+        "returns allowances": "returns",
+    }
+)
 
 
 def _normalize_label(label: str) -> str:
@@ -622,9 +627,8 @@ def _best_account_for_item(
         aid = explicit[key]
         return next(a for a in taxonomy if a["id"] == aid)
 
-    # Skip pure roll-up "Net Other" when components are mapped separately —
-    # still allow mapping if nothing else; treat as OTHER_NET only when no
-    # component siblings were preferred. We skip net_other to avoid double-count.
+    # Always skip Net Other Income (Expense): component lines map to OTHER_NET
+    # separately, so mapping this roll-up would double-count.
     if key == "net_other":
         return None
     if key == "returns":
@@ -654,6 +658,32 @@ def _best_account_for_item(
     if best_score >= 2:
         return best
     return None
+
+
+def _account_contribution(item: MergedLineItem) -> float:
+    """Signed amount a merged item contributes to its mapped account.
+
+    Shared by map_to_accounts and audit_trail so sign flips (e.g. FX loss)
+    cannot diverge between the account total and provenance.
+    """
+    key = _alias_key(item.label)
+    if key == "fx_loss" and item.value > 0:
+        return -item.value
+    return item.value
+
+
+def _mapping_decision(item: MergedLineItem, contribution: float) -> str:
+    """Explain how the merged value was applied to the account."""
+    if abs(contribution - item.value) > 0.01:
+        return (
+            f"Mapped '{item.label}' with account contribution "
+            f"{contribution:,.2f} (merged/source value {item.value:,.2f} "
+            f"negated as a loss for the destination account)."
+        )
+    return (
+        f"Mapped '{item.label}' with account contribution "
+        f"{contribution:,.2f}."
+    )
 
 
 def map_to_accounts(
@@ -708,30 +738,21 @@ def map_to_accounts(
             # Prefer a single authoritative total line; skip duplicates.
             continue
 
-        # Sign: FX loss / expense-like OTHER_NET items that are losses.
-        value = item.value
-        key = _alias_key(item.label)
-        if key == "fx_loss" and value > 0:
-            value = -value
+        contribution = _account_contribution(item)
 
         # For leaf accounts that accumulate many SGA lines, sum them.
         # For total / single-concept accounts, typically one item.
         mapping.mapped_items.append(item)
         if acct.get("type") == "leaf" and aid in {"SGA", "COGS_OTHER", "OTHER_NET", "DEPR_AMORT"}:
-            mapping.value = sum(
-                (
-                    (-m.value if _alias_key(m.label) == "fx_loss" and m.value > 0 else m.value)
-                    for m in mapping.mapped_items
-                )
-            )
+            mapping.value = sum(_account_contribution(m) for m in mapping.mapped_items)
         elif acct.get("type") == "leaf" and len(mapping.mapped_items) > 1:
-            mapping.value = sum(m.value for m in mapping.mapped_items)
+            mapping.value = sum(_account_contribution(m) for m in mapping.mapped_items)
         else:
             # First (authoritative) assignment for totals / single leaves.
             if len(mapping.mapped_items) == 1:
-                mapping.value = value
+                mapping.value = contribution
             else:
-                mapping.value = sum(m.value for m in mapping.mapped_items)
+                mapping.value = sum(_account_contribution(m) for m in mapping.mapped_items)
 
     return list(by_id.values())
 
@@ -808,6 +829,7 @@ def audit_trail(
                 if "conflict" not in lower and "disagree" not in lower:
                     decision = f"Value conflict / sources disagree. {decision}"
 
+            contribution = _account_contribution(item)
             source_values = [
                 {
                     "source": s.source,
@@ -825,6 +847,8 @@ def audit_trail(
                     "merged_label": item.label,
                     "merged_value": item.value,
                     "merge_decision": decision,
+                    "account_contribution": contribution,
+                    "mapping_decision": _mapping_decision(item, contribution),
                     "has_conflict": item.has_conflict,
                     "conflict_type": item.conflict_type,
                     "flagged": item.flagged,

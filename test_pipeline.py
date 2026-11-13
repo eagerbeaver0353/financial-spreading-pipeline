@@ -469,3 +469,27 @@ class TestAuditEdgeCases:
         sv_ids = [sv["id"] for sv in benefit_entries[0]["source_values"]]
         assert sorted(sv_ids) == ["a_15", "a_16", "b_12"]
         assert sv_ids.count("b_12") == 1
+
+    def test_fx_loss_contribution_traceable_in_other_net(self, mappings, provenance):
+        """FX loss stays positive at source/merge but contributes negatively."""
+        other = [m for m in mappings if m.account_id == "OTHER_NET"]
+        assert len(other) == 1
+        assert abs(other[0].value - 120000) < 1
+
+        prov = [p for p in provenance if p.account_id == "OTHER_NET"]
+        assert len(prov) == 1
+        assert abs(prov[0].final_value - other[0].value) < 0.01
+
+        fx = [
+            e for e in prov[0].chain
+            if "foreign exchange" in e["merged_label"].lower()
+        ]
+        assert len(fx) == 1
+        entry = fx[0]
+        assert abs(entry["merged_value"] - 15000) < 0.01
+        assert any(abs(sv["value"] - 15000) < 0.01 for sv in entry["source_values"])
+        assert abs(entry["account_contribution"] - (-15000)) < 0.01
+        assert "negat" in entry["mapping_decision"].lower()
+
+        contrib_sum = sum(e["account_contribution"] for e in prov[0].chain)
+        assert abs(contrib_sum - prov[0].final_value) < 0.01
