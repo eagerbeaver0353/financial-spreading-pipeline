@@ -363,30 +363,30 @@ def reconcile(
     if a_health and a_retire and b_benefits:
         split_sum = a_health.value + a_retire.value
         if abs(split_sum - b_benefits.value) < 1000:
-            # Keep the split components (no double-count of combined line).
-            for part, name in (
-                (a_health, "Health Insurance"),
-                (a_retire, "Retirement Benefits"),
-            ):
-                merged.append(
-                    MergedLineItem(
-                        label=name,
-                        value=part.value,
-                        confidence=min(part.confidence, b_benefits.confidence),
-                        sources=[part, b_benefits],
-                        has_conflict=False,
-                        conflict_type="split_vs_combined",
-                        resolution_note=(
-                            f"LLM split Employee Benefits into Health Insurance "
-                            f"({a_health.value:,.0f}) + Retirement Benefits "
-                            f"({a_retire.value:,.0f}) = {split_sum:,.0f}, matching "
-                            f"OCR combined Employee Benefits ({b_benefits.value:,.0f}). "
-                            f"Retained split components; did not also keep the "
-                            f"combined OCR line as a separate amount."
-                        ),
-                        flagged=False,
-                    )
+            # One merged concept: OCR combined total, with both LLM components
+            # attached once (avoids repeating the OCR $645K on each split row).
+            merged.append(
+                MergedLineItem(
+                    label="Employee Benefits",
+                    value=b_benefits.value,
+                    confidence=max(
+                        b_benefits.confidence,
+                        min(a_health.confidence, a_retire.confidence),
+                    ),
+                    sources=[a_health, a_retire, b_benefits],
+                    has_conflict=False,
+                    conflict_type="split_vs_combined",
+                    resolution_note=(
+                        f"LLM split Employee Benefits into Health Insurance "
+                        f"({a_health.value:,.0f}) + Retirement Benefits "
+                        f"({a_retire.value:,.0f}) = {split_sum:,.0f}, matching "
+                        f"OCR combined Employee Benefits ({b_benefits.value:,.0f}). "
+                        f"Merged into a single ${b_benefits.value:,.0f} item with "
+                        f"all three source records; did not emit separate component rows."
+                    ),
+                    flagged=False,
                 )
+            )
             used_b.add(id(b_benefits))
             benefits_handled = True
 

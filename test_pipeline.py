@@ -423,3 +423,29 @@ class TestAuditEdgeCases:
             for sv in entry["source_values"]:
                 ids.add(sv["id"])
         assert "a_01" in ids and "b_01" in ids
+
+    def test_employee_benefits_provenance_lists_three_sources_once(self, merged, provenance):
+        """Benefits must be one $645K merged item; OCR total appears once in provenance."""
+        benefit_items = [
+            m for m in merged
+            if any(kw in m.label.lower() for kw in ("benefit", "health insurance", "retirement"))
+        ]
+        assert len(benefit_items) == 1
+        item = benefit_items[0]
+        assert abs(item.value - 645000) < 1
+        assert len(item.sources) == 3
+        source_ids = [s.id for s in item.sources]
+        assert source_ids.count("a_15") == 1  # Health Insurance (LLM)
+        assert source_ids.count("a_16") == 1  # Retirement Benefits (LLM)
+        assert source_ids.count("b_12") == 1  # Employee Benefits (OCR)
+
+        sga = [p for p in provenance if p.account_id == "SGA"]
+        assert len(sga) == 1
+        benefit_entries = [
+            e for e in sga[0].chain
+            if "benefit" in e.get("merged_label", "").lower()
+        ]
+        assert len(benefit_entries) == 1
+        sv_ids = [sv["id"] for sv in benefit_entries[0]["source_values"]]
+        assert sorted(sv_ids) == ["a_15", "a_16", "b_12"]
+        assert sv_ids.count("b_12") == 1
