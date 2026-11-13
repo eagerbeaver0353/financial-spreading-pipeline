@@ -230,6 +230,11 @@ def _token_set(label: str) -> set[str]:
 def _label_similarity(a: str, b: str) -> float:
     if _alias_key(a) == _alias_key(b):
         return 1.0
+    # Distinct known concepts (e.g. net_other vs net_income) must not pair
+    # through generic token overlap like {"net", "income"}.
+    na, nb = _normalize_label(a), _normalize_label(b)
+    if na in _LABEL_ALIASES and nb in _LABEL_ALIASES:
+        return 0.0
     ta, tb = _token_set(a), _token_set(b)
     if not ta or not tb:
         return 0.0

@@ -374,6 +374,26 @@ class TestReconcileEdgeCases:
         assert packaging[0].flagged is True
         assert packaging[0].conflict_type == "single_source"
 
+    def test_net_other_income_not_paired_with_net_income(self, merged):
+        """a_34 (Net Other Income) must not steal b_29 from true Net Income."""
+        for item in merged:
+            ids = {s.id for s in item.sources}
+            assert not ({"a_34", "b_29"} <= ids), (
+                "Net Other Income (Expense) must not pair with Net Income"
+            )
+
+    def test_net_income_sources_are_a37_and_b29(self, merged):
+        """True Net Income lines a_37 and b_29 should be reconciled together."""
+        net_income = [
+            m for m in merged
+            if m.label.lower() == "net income"
+            or {s.id for s in m.sources} == {"a_37", "b_29"}
+        ]
+        assert len(net_income) == 1
+        ids = {s.id for s in net_income[0].sources}
+        assert ids == {"a_37", "b_29"}
+        assert abs(net_income[0].value - 478500) < 1
+
 
 class TestMappingEdgeCases:
     """Candidate-added mapping edge cases."""
